@@ -174,7 +174,7 @@ internal class EmitClass
                 .WriteLine(w =>
                 {
                     w.Write(info.VariableName)
-                    .Write(".Subscribe");
+                    .Write("!.Subscribe");
                     PrintGenerics(w, fins);
                     w.Write("(this, model")
                     .Write(index)
