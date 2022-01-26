@@ -165,7 +165,7 @@ internal class EmitClass
             {
                 w.WriteLine(w =>
                 {
-                    w.Write("IHandleAsync");
+                    w.PopulateHandle("IHandleAsync");
                     PrintGenerics(w, fins);
                     w.Write("model")
                     .Write(index)
@@ -190,7 +190,7 @@ internal class EmitClass
         {
             w.WriteLine(w =>
             {
-                w.Write("IHandle");
+                w.PopulateHandle("IHandle");
                 PrintGenerics(w, fins);
                 w.Write("model")
                 .Write(index)
@@ -223,7 +223,7 @@ internal class EmitClass
             {
                 w.WriteLine(w =>
                 {
-                    w.Write("IHandle");
+                    w.PopulateHandle("IHandle");
                     PrintGenerics(w, fins);
                     w.Write("model")
                     .Write(index)
