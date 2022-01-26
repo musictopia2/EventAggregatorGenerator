@@ -199,7 +199,7 @@ internal class EmitClass
             .WriteLine(w =>
             {
                 w.Write(info.VariableName)
-                .Write(".Subscribe");
+                .Write("!.Subscribe");
                 PrintGenerics(w, fins);
                 w.Write("(this, model")
                 .Write(index)
@@ -233,7 +233,7 @@ internal class EmitClass
                .WriteLine(w =>
                {
                    w.Write(info.VariableName)
-                   .Write(".Subscribe");
+                   .Write("!.Subscribe");
                    PrintGenerics(w, fins);
                    w.Write("(this, model")
                    .Write(index)
@@ -273,7 +273,7 @@ internal class EmitClass
         w.WriteLine(w =>
         {
             w.Write(info.VariableName)
-            .Write(".UnsubscribeSingle");
+            .Write("!.UnsubscribeSingle");
             PrintGenerics(w, subs);
             w.Write("(this, ");
             if (info.Category == EnumCategory.Main)
@@ -296,7 +296,7 @@ internal class EmitClass
             w.WriteLine(w =>
             {
                 w.Write(info.VariableName)
-                .Write(".UnsubscribeSingle");
+                .Write("!.UnsubscribeSingle");
                 PrintGenerics(w, subs);
                 w.Write("(this, name);");
             });
