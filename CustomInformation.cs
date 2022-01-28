@@ -2,8 +2,8 @@
 internal class CustomInformation
 {
     public EnumCategory Category { get; set; }
-    public BasicList<INamedTypeSymbol> HandlesRegularImplemented { get; set; } = new();
-    public BasicList<INamedTypeSymbol> HandlesAsyncImplemented { get; set; } = new();
+    public BasicList<HandleInfo> HandlesRegularImplemented { get; set; } = new();
+    public BasicList<HandleInfo> HandlesAsyncImplemented { get; set; } = new();
     public string VariableName { get; set; } = "";
     public string TagName { get; set; } = "";
     public bool HasPartialSubscribe { get; set; }

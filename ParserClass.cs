@@ -29,8 +29,23 @@ internal class ParserClass
             toUse = symbol.GetSpecificMethod("Unsubscribe"); //no caps
             model.HasPartialUnsubscribe = toUse is not null;
             bool parent = symbol.Implements("IBlazorParent");
-            model.HandlesRegularImplemented = symbol.GetGenericSymbolsImplemented("IHandle");
-            model.HandlesAsyncImplemented = symbol.GetGenericSymbolsImplemented("IHandleAsync");
+            var nexts = symbol.GetGenericSymbolsImplemented("IHandle");
+            foreach (var n in nexts)
+            {
+                HandleInfo h = new();
+                h.Symbol = n;
+                h.GenericUsed = n.GetGenericString();
+                model.HandlesRegularImplemented.Add(h);
+            }
+            //model.HandlesRegularImplemented = symbol.GetGenericSymbolsImplemented("IHandle");
+            nexts = symbol.GetGenericSymbolsImplemented("IHandleAsync");
+            foreach (var n in nexts)
+            {
+                HandleInfo h = new();
+                h.Symbol = n;
+                h.GenericUsed = n.GetGenericString();
+                model.HandlesAsyncImplemented.Add(h);
+            }
             bool rets = symbol.TryGetAttribute(aa.CustomTag.CustomTagAttribute, out var attributes);
             if (rets)
             {

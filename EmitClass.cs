@@ -12,89 +12,92 @@ internal class EmitClass
     }
     public void Emit()
     {
-        bool hadErrors = false;
+        //bool hadErrors = false;
         foreach (var item in _list)
         {
             if (item.HasPartialSubscribe == false && item.Category != EnumCategory.Screen)
             {
                 _context.RaiseNoSubscribeException(item.SymbolUsed!.Name);
-                hadErrors = true;
+                //hadErrors = true;
             }
             if (item.HasPartialUnsubscribe == false && item.Category != EnumCategory.Screen)
             {
                 _context.RaiseNoUnsubscribeException(item.SymbolUsed!.Name);
-                hadErrors = true;
+                //hadErrors = true;
             }
             if (item.HasPartialClass == false)
             {
                 _context.RaiseNoPartialClassException(item.SymbolUsed!.Name);
-                hadErrors = true;
+                //hadErrors = true;
             }
             if (item.VariableName == "")
             {
                 _context.RaiseNoVariableException(item.SymbolUsed!.Name);
-                hadErrors = true;
+                //hadErrors = true;
             }
             if (item.Category == EnumCategory.Main && item.TagName != "")
             {
                 _context.NoTagsAllowed();
-                hadErrors = true;
+                //hadErrors = true;
             }
         }
-        if (hadErrors)
-        {
-            return;
-        }
+        //if (hadErrors)
+        //{
+        //    return;
+        //}
 
         foreach (var item in _list)
         {
-            SourceCodeStringBuilder builder = new();
-            builder.WriteLine("#nullable enable")
+            if (item.HasErrors() == false)
+            {
+                SourceCodeStringBuilder builder = new();
+                builder.WriteLine("#nullable enable")
+                    .WriteLine(w =>
+                    {
+                        w.Write("namespace ")
+                        .Write(item.SymbolUsed!.ContainingNamespace)
+                        .Write(";");
+                    })
                 .WriteLine(w =>
                 {
-                    w.Write("namespace ")
-                    .Write(item.SymbolUsed!.ContainingNamespace)
-                    .Write(";");
+                    w.Write("public partial class ")
+                    .Write(item.SymbolUsed!.Name)
+                    .Write(item.GenericInfo);
                 })
-            .WriteLine(w =>
-            {
-                w.Write("public partial class ")
-                .Write(item.SymbolUsed!.Name)
-                .Write(item.GenericInfo);
-            })
-            .WriteCodeBlock(w =>
-            {
-                if (item.Category != EnumCategory.Screen)
+                .WriteCodeBlock(w =>
                 {
-                    w.WriteLine("private partial void Subscribe()")
-                    .WriteCodeBlock(w =>
+                    if (item.Category != EnumCategory.Screen)
                     {
-                        WriteSubscribe(w, item);
-                    });
-                    w.WriteLine("private partial void Unsubscribe()")
-                    .WriteCodeBlock(w =>
-                    {
+                        w.WriteLine("private partial void Subscribe()")
+                        .WriteCodeBlock(w =>
+                        {
+                            WriteSubscribe(w, item);
+                        });
+                        w.WriteLine("private partial void Unsubscribe()")
+                        .WriteCodeBlock(w =>
+                        {
 
-                        WriteUnsubscribe(w, item);
-                    });
-                }
-                else
-                {
-                    w.WriteLine("protected override void OpenAggregator()")
-                    .WriteCodeBlock(w =>
+                            WriteUnsubscribe(w, item);
+                        });
+                    }
+                    else
                     {
-                        w.WriteLine("base.OpenAggregator();");
-                        WriteSubscribe(w, item);
-                    });
-                    w.WriteLine("protected override void CloseAggregator()")
-                    .WriteCodeBlock(w =>
-                    {
-                        w.WriteLine("base.CloseAggregator();");
-                        WriteUnsubscribe(w, item);
-                    });
-                }
-            });
-            _context.AddSource($"{item.SymbolUsed!.Name}.EventAggravatorMethods.g", builder.ToString());
+                        w.WriteLine("protected override void OpenAggregator()")
+                        .WriteCodeBlock(w =>
+                        {
+                            w.WriteLine("base.OpenAggregator();");
+                            WriteSubscribe(w, item);
+                        });
+                        w.WriteLine("protected override void CloseAggregator()")
+                        .WriteCodeBlock(w =>
+                        {
+                            w.WriteLine("base.CloseAggregator();");
+                            WriteUnsubscribe(w, item);
+                        });
+                    }
+                });
+                _context.AddSource($"{item.SymbolUsed!.Name}.EventAggravatorMethods.g", builder.ToString());
+            }
         }
         AddGlobal();
     }
@@ -126,20 +129,19 @@ internal class EmitClass
             {
                 foreach (var item in _list)
                 {
-                    if (item.GenericInfo == "")
+                    var fins = GetUniqueSymbols(item);
+                    foreach (var ff in fins)
                     {
-                        var fins = GetUniqueSymbols(item);
-                        foreach (var ff in fins)
+                        if (ff.GenericUsed == "")
                         {
                             w.WriteLine(w =>
                             {
 
                                 w.Write("aggravator.Clear");
-                                PrintGenerics(w, ff, item.GenericInfo);
+                                PrintGenerics(w, ff);
                                 w.Write("();");
                             });
                         }
-                        //because otherwise, don't know what generic type to use unfortunately.
                     }
                 }
             });
@@ -170,7 +172,7 @@ internal class EmitClass
                 w.WriteLine(w =>
                 {
                     w.PopulateHandle("IHandleAsync");
-                    PrintGenerics(w, fins, info.GenericInfo);
+                    PrintGenerics(w, fins);
                     w.Write("model")
                     .Write(index)
                     .Write(" = this;");
@@ -179,7 +181,7 @@ internal class EmitClass
                 {
                     w.Write(info.VariableName)
                     .Write("!.Subscribe");
-                    PrintGenerics(w, fins, info.GenericInfo);
+                    PrintGenerics(w, fins);
                     w.Write("(this, model")
                     .Write(index)
                     .Write(".HandleAsync, ")
@@ -195,7 +197,7 @@ internal class EmitClass
             w.WriteLine(w =>
             {
                 w.PopulateHandle("IHandle");
-                PrintGenerics(w, fins, info.GenericInfo);
+                PrintGenerics(w, fins);
                 w.Write("model")
                 .Write(index)
                 .Write(" = this;");
@@ -204,7 +206,7 @@ internal class EmitClass
             {
                 w.Write(info.VariableName)
                 .Write("!.Subscribe");
-                PrintGenerics(w, fins, info.GenericInfo);
+                PrintGenerics(w, fins);
                 w.Write("(this, model")
                 .Write(index)
                 .Write(".Handle, ");
@@ -228,7 +230,7 @@ internal class EmitClass
                 w.WriteLine(w =>
                 {
                     w.PopulateHandle("IHandle");
-                    PrintGenerics(w, fins, info.GenericInfo);
+                    PrintGenerics(w, fins);
                     w.Write("model")
                     .Write(index)
                     .Write(" = this;");
@@ -238,7 +240,7 @@ internal class EmitClass
                {
                    w.Write(info.VariableName)
                    .Write("!.Subscribe");
-                   PrintGenerics(w, fins, info.GenericInfo);
+                   PrintGenerics(w, fins);
                    w.Write("(this, model")
                    .Write(index)
                    .Write(".Handle, name);");
@@ -247,16 +249,16 @@ internal class EmitClass
             }
         }
     }
-    private BasicList<INamedTypeSymbol> GetUniqueSymbols(CustomInformation info)
+    private BasicList<HandleInfo> GetUniqueSymbols(CustomInformation info)
     {
-        BasicList<INamedTypeSymbol> output = new();
+        BasicList<HandleInfo> output = new();
         foreach (var item in info.HandlesRegularImplemented)
         {
             output.Add(item);
         }
         foreach (var item in info.HandlesAsyncImplemented)
         {
-            if (output.Exists(x => x.Name == item.Name && x.ContainingNamespace.ToDisplayString == item.ContainingNamespace.ToDisplayString) == false)
+            if (output.Exists(x => x.Symbol!.Name == item.Symbol!.Name && x.Symbol.ContainingNamespace.ToDisplayString == item.Symbol.ContainingNamespace.ToDisplayString) == false)
             {
                 output.Add(item);
             }
@@ -265,20 +267,20 @@ internal class EmitClass
     }
     private void WriteUnsubscribe(ICodeBlock w, CustomInformation info)
     {
-        BasicList<INamedTypeSymbol> list = GetUniqueSymbols(info);
+        BasicList<HandleInfo> list = GetUniqueSymbols(info);
         WriteParent(w, info);
         foreach (var item in list)
         {
             WriteUnsubscribe(w, info, item);
         }
     }
-    private void WriteUnsubscribe(ICodeBlock w, CustomInformation info, INamedTypeSymbol subs)
+    private void WriteUnsubscribe(ICodeBlock w, CustomInformation info, HandleInfo subs)
     {
         w.WriteLine(w =>
         {
             w.Write(info.VariableName)
             .Write("!.UnsubscribeSingle");
-            PrintGenerics(w, subs, info.GenericInfo);
+            PrintGenerics(w, subs);
             w.Write("(this, ");
             if (info.Category == EnumCategory.Main)
             {
@@ -301,22 +303,22 @@ internal class EmitClass
             {
                 w.Write(info.VariableName)
                 .Write("!.UnsubscribeSingle");
-                PrintGenerics(w, subs, info.GenericInfo);
+                PrintGenerics(w, subs);
                 w.Write("(this, name);");
             });
         }
     }
-    private void PrintGenerics(IWriter w, INamedTypeSymbol symbol, string genericInfo)
+    private void PrintGenerics(IWriter w, HandleInfo handle)
     {
         w.SingleGenericWrite(w =>
         {
             w.GlobalWrite()
-            .Write(symbol.ContainingNamespace)
+            .Write(handle.Symbol!.ContainingNamespace)
             .Write(".")
-            .Write(symbol.Name);
-            if (genericInfo != "")
+            .Write(handle.Symbol!.Name);
+            if (handle.GenericUsed != "")
             {
-                w.Write(genericInfo);
+                w.Write(handle.GenericUsed);
             }
         });
     }
