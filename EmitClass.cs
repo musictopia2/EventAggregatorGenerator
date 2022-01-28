@@ -126,16 +126,20 @@ internal class EmitClass
             {
                 foreach (var item in _list)
                 {
-                    var fins = GetUniqueSymbols(item);
-                    foreach (var ff in fins)
+                    if (item.GenericInfo == "")
                     {
-                        w.WriteLine(w =>
+                        var fins = GetUniqueSymbols(item);
+                        foreach (var ff in fins)
                         {
+                            w.WriteLine(w =>
+                            {
 
-                            w.Write("aggravator.Clear");
-                            PrintGenerics(w, ff);
-                            w.Write("();");
-                        });
+                                w.Write("aggravator.Clear");
+                                PrintGenerics(w, ff, item.GenericInfo);
+                                w.Write("();");
+                            });
+                        }
+                        //because otherwise, don't know what generic type to use unfortunately.
                     }
                 }
             });
@@ -166,7 +170,7 @@ internal class EmitClass
                 w.WriteLine(w =>
                 {
                     w.PopulateHandle("IHandleAsync");
-                    PrintGenerics(w, fins);
+                    PrintGenerics(w, fins, info.GenericInfo);
                     w.Write("model")
                     .Write(index)
                     .Write(" = this;");
@@ -175,7 +179,7 @@ internal class EmitClass
                 {
                     w.Write(info.VariableName)
                     .Write("!.Subscribe");
-                    PrintGenerics(w, fins);
+                    PrintGenerics(w, fins, info.GenericInfo);
                     w.Write("(this, model")
                     .Write(index)
                     .Write(".HandleAsync, ")
@@ -191,7 +195,7 @@ internal class EmitClass
             w.WriteLine(w =>
             {
                 w.PopulateHandle("IHandle");
-                PrintGenerics(w, fins);
+                PrintGenerics(w, fins, info.GenericInfo);
                 w.Write("model")
                 .Write(index)
                 .Write(" = this;");
@@ -200,7 +204,7 @@ internal class EmitClass
             {
                 w.Write(info.VariableName)
                 .Write("!.Subscribe");
-                PrintGenerics(w, fins);
+                PrintGenerics(w, fins, info.GenericInfo);
                 w.Write("(this, model")
                 .Write(index)
                 .Write(".Handle, ");
@@ -224,7 +228,7 @@ internal class EmitClass
                 w.WriteLine(w =>
                 {
                     w.PopulateHandle("IHandle");
-                    PrintGenerics(w, fins);
+                    PrintGenerics(w, fins, info.GenericInfo);
                     w.Write("model")
                     .Write(index)
                     .Write(" = this;");
@@ -234,7 +238,7 @@ internal class EmitClass
                {
                    w.Write(info.VariableName)
                    .Write("!.Subscribe");
-                   PrintGenerics(w, fins);
+                   PrintGenerics(w, fins, info.GenericInfo);
                    w.Write("(this, model")
                    .Write(index)
                    .Write(".Handle, name);");
@@ -274,7 +278,7 @@ internal class EmitClass
         {
             w.Write(info.VariableName)
             .Write("!.UnsubscribeSingle");
-            PrintGenerics(w, subs);
+            PrintGenerics(w, subs, info.GenericInfo);
             w.Write("(this, ");
             if (info.Category == EnumCategory.Main)
             {
@@ -297,12 +301,12 @@ internal class EmitClass
             {
                 w.Write(info.VariableName)
                 .Write("!.UnsubscribeSingle");
-                PrintGenerics(w, subs);
+                PrintGenerics(w, subs, info.GenericInfo);
                 w.Write("(this, name);");
             });
         }
     }
-    private void PrintGenerics(IWriter w, INamedTypeSymbol symbol)
+    private void PrintGenerics(IWriter w, INamedTypeSymbol symbol, string genericInfo)
     {
         w.SingleGenericWrite(w =>
         {
@@ -310,6 +314,10 @@ internal class EmitClass
             .Write(symbol.ContainingNamespace)
             .Write(".")
             .Write(symbol.Name);
+            if (genericInfo != "")
+            {
+                w.Write(genericInfo);
+            }
         });
     }
 }
