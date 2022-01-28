@@ -17,6 +17,10 @@ internal class CustomInformation
         {
             return true;
         }
+        if (Category == EnumCategory.Screen)
+        {
+            return HasPartialClass == false;
+        }
         if (HasPartialClass == false || HasPartialSubscribe == false || HasPartialUnsubscribe == false)
         {
             return true;
