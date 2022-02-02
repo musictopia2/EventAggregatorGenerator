@@ -11,14 +11,30 @@ internal static class SourceContextExtensions
         string information = $"Needs to have partial class for class name was {className}";
         context.ReportDiagnostic(Diagnostic.Create(RaiseException(information, "NoClass"), Location.None));
     }
-    public static void RaiseNoSubscribeException(this SourceProductionContext context, string className)
+    public static void RaiseNoSubscribeException(this SourceProductionContext context, string className, bool needsExtra)
     {
-        string information = $"Needs to have partial subscribe.  Try to use private partial void Subscribe();  The class name was {className}";
+        string information;
+        if (needsExtra)
+        {
+            information = $"Needs to have partial subscribe.  Try to use private partial void Subscribe(string tag);  The class name was {className}";
+        }
+        else
+        {
+            information = $"Needs to have partial subscribe.  Try to use private partial void Subscribe();  The class name was {className}";
+        }
         context.ReportDiagnostic(Diagnostic.Create(RaiseException(information, "SubscribeMethod"), Location.None));
     }
-    public static void RaiseNoUnsubscribeException(this SourceProductionContext context, string className)
+    public static void RaiseNoUnsubscribeException(this SourceProductionContext context, string className, bool needsExtra)
     {
-        string information = $"Needs to have partial unsubscribe.  Try to use private partial void Unsubscribe(); The class name was {className}";
+        string information;
+        if (needsExtra)
+        {
+            information = $"Needs to have partial unsubscribe.  Try to use private partial void Unsubscribe(string tag); The class name was {className}";
+        }
+        else
+        {
+            information = $"Needs to have partial unsubscribe.  Try to use private partial void Unsubscribe(); The class name was {className}";
+        }
         context.ReportDiagnostic(Diagnostic.Create(RaiseException(information, "UnsubscribeMethod"), Location.None));
     }
     public static void NoTagsAllowed(this SourceProductionContext context)

@@ -50,6 +50,27 @@ internal class ParserClass
             if (rets)
             {
                 model.TagName = attributes.AttributePropertyValue<string>(aa.CustomTag.GetTagInfo)!;
+                if (string.IsNullOrWhiteSpace(model.TagName))
+                {
+                    //this means needs another condition.
+                    model.NeedsTagVariables = true;
+                    toUse = symbol.GetSpecificMethod("Subscribe", 1);
+                    model.HasPartialSubscribe = toUse is not null;
+                    if (model.HasPartialSubscribe)
+                    {
+                        var temps = toUse as IMethodSymbol;
+                        var ss = temps!.Parameters.Single();
+                        model.SubscribeTag = ss.Name;
+                    }
+                    toUse = symbol.GetSpecificMethod("Unsubscribe", 1); //no caps
+                    model.HasPartialUnsubscribe = toUse is not null;
+                    if (model.HasPartialUnsubscribe)
+                    {
+                        var temps = toUse as IMethodSymbol;
+                        var ss = temps!.Parameters.Single();
+                        model.UnsubscribeTag = ss.Name;
+                    }
+                }
             }
             model.SymbolUsed = symbol;
             if (symbol.Name == "ScreenViewModel" && symbol.ContainingNamespace.ToDisplayString() == "MVVMFramework.ViewModels")

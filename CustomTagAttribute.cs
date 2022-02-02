@@ -3,6 +3,6 @@ namespace EventAggregatorGenerator;
 [AttributeUsage(AttributeTargets.Class)]
 internal class CustomTagAttribute : Attribute
 {
-    [Required]
+    [Required] //still make required but can be blank though.
     public string Tag { get; set; } = "";
 }

@@ -17,12 +17,12 @@ internal class EmitClass
         {
             if (item.HasPartialSubscribe == false && item.Category != EnumCategory.Screen)
             {
-                _context.RaiseNoSubscribeException(item.SymbolUsed!.Name);
+                _context.RaiseNoSubscribeException(item.SymbolUsed!.Name, item.NeedsTagVariables);
                 //hadErrors = true;
             }
             if (item.HasPartialUnsubscribe == false && item.Category != EnumCategory.Screen)
             {
-                _context.RaiseNoUnsubscribeException(item.SymbolUsed!.Name);
+                _context.RaiseNoUnsubscribeException(item.SymbolUsed!.Name, item.NeedsTagVariables);
                 //hadErrors = true;
             }
             if (item.HasPartialClass == false)
@@ -68,13 +68,37 @@ internal class EmitClass
                 {
                     if (item.Category != EnumCategory.Screen)
                     {
-                        w.WriteLine("private partial void Subscribe()")
-                        .WriteCodeBlock(w =>
+                        if (item.SubscribeTag != "")
+                        {
+                            w.WriteLine(w =>
+                            {
+                                w.Write("private partial void Subscribe(string ")
+                                .Write(item.SubscribeTag)
+                                .Write(")");
+                            });
+                        }
+                        else
+                        {
+                            w.WriteLine("private partial void Subscribe()");
+                        }
+                        w.WriteCodeBlock(w =>
                         {
                             WriteSubscribe(w, item);
                         });
-                        w.WriteLine("private partial void Unsubscribe()")
-                        .WriteCodeBlock(w =>
+                        if (item.UnsubscribeTag != "")
+                        {
+                            w.WriteLine(w =>
+                            {
+                                w.Write("private partial void Unsubscribe(string ")
+                               .Write(item.SubscribeTag)
+                               .Write(")");
+                            });
+                        }
+                        else
+                        {
+                            w.WriteLine("private partial void Unsubscribe()");
+                        }
+                        w.WriteCodeBlock(w =>
                         {
 
                             WriteUnsubscribe(w, item);
@@ -184,9 +208,16 @@ internal class EmitClass
                     PrintGenerics(w, fins);
                     w.Write("(this, model")
                     .Write(index)
-                    .Write(".HandleAsync, ")
-                    .AppendDoubleQuote(info.TagName)
-                    .Write(");");
+                    .Write(".HandleAsync, ");
+                    if (info.SubscribeTag != "")
+                    {
+                        w.Write(info.SubscribeTag);
+                    }
+                    else
+                    {
+                        w.AppendDoubleQuote(info.TagName);
+                    }
+                    w.Write(");");
                 });
                 index++;
             }
@@ -217,6 +248,10 @@ internal class EmitClass
                 else if (info.Category == EnumCategory.Parent)
                 {
                     w.Write(" name");
+                }
+                else if (info.SubscribeTag != "")
+                {
+                    w.Write(info.SubscribeTag);
                 }
                 else
                 {
@@ -289,6 +324,10 @@ internal class EmitClass
             else if (info.Category == EnumCategory.Parent)
             {
                 w.Write(" name");
+            }
+            else if (info.UnsubscribeTag != "")
+            {
+                w.Write(info.UnsubscribeTag);
             }
             else
             {
