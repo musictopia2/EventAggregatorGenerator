@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Nullable>enable</Nullable>
@@ -8,7 +8,7 @@
 		<Description>Description</Description>
 		<Authors>musictopia</Authors>
 		<PackageProjectUrl>https://github.com/musictopia2/EventAggregatorGenerator</PackageProjectUrl>
-		<Version>1.0.7</Version>
+		<Version>1.0.8</Version>
 	</PropertyGroup>
 	<PropertyGroup>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
