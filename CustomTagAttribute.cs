@@ -5,4 +5,5 @@ internal class CustomTagAttribute : Attribute
 {
     [Required]
     public string Tag { get; set; } = "";
+    public bool AlsoNoTags { get; set; }
 }

@@ -61,6 +61,7 @@ internal class ParserClass
                         var temps = toUse as IMethodSymbol;
                         var ss = temps!.Parameters.Single();
                         model.SubscribeTag = ss.Name;
+                        model.AlsoNoTags = attributes.AttributePropertyValue<bool>(aa.CustomTag.GetAlsoNoTagsInfo)!;
                     }
                     toUse = symbol.GetSpecificMethod("Unsubscribe", 1); //no caps
                     model.HasPartialUnsubscribe = toUse is not null;

@@ -1,4 +1,6 @@
-﻿namespace EventAggregatorGenerator;
+﻿using System.Reflection;
+
+namespace EventAggregatorGenerator;
 internal class EmitClass
 {
     private readonly SourceProductionContext _context;
@@ -185,6 +187,56 @@ internal class EmitClass
             .WriteLine("string name = type.Name;");
         }
     }
+    private void WriteSubscribeAsyncMethod(ICodeBlock w, CustomInformation info, int index, HandleInfo fins, bool doTags)
+    {
+        w.WriteLine(w =>
+        {
+            w.Write(info.VariableName)
+                    .Write("!.Subscribe");
+            PrintGenerics(w, fins);
+            w.Write("(this, model")
+            .Write(index)
+            .Write(".HandleAsync, ");
+            if (doTags)
+            {
+                w.Write(info.SubscribeTag);
+            }
+            else
+            {
+                w.AppendDoubleQuote(info.TagName);
+            }
+            w.Write(");");
+        });
+    }
+    private void WriteSubscribeRegularMethod(ICodeBlock w, CustomInformation info, int index, HandleInfo fins, bool doTags)
+    {
+        w.WriteLine(w =>
+         {
+             w.Write(info.VariableName)
+             .Write("!.Subscribe");
+             PrintGenerics(w, fins);
+             w.Write("(this, model")
+             .Write(index)
+             .Write(".Handle, ");
+             if (info.Category == EnumCategory.Main)
+             {
+                 w.AppendDoubleQuote();
+             }
+             else if (info.Category == EnumCategory.Parent)
+             {
+                 w.Write(" name");
+             }
+             else if (doTags == true)
+             {
+                 w.Write(info.SubscribeTag);
+             }
+             else
+             {
+                 w.AppendDoubleQuote(info.TagName);
+             }
+             w.Write(");");
+         });
+    }
     private void WriteSubscribe(ICodeBlock w, CustomInformation info)
     {
         int index = 0;
@@ -200,25 +252,19 @@ internal class EmitClass
                     w.Write("model")
                     .Write(index)
                     .Write(" = this;");
-                })
-                .WriteLine(w =>
-                {
-                    w.Write(info.VariableName)
-                    .Write("!.Subscribe");
-                    PrintGenerics(w, fins);
-                    w.Write("(this, model")
-                    .Write(index)
-                    .Write(".HandleAsync, ");
-                    if (info.SubscribeTag != "")
-                    {
-                        w.Write(info.SubscribeTag);
-                    }
-                    else
-                    {
-                        w.AppendDoubleQuote(info.TagName);
-                    }
-                    w.Write(");");
                 });
+                if (info.SubscribeTag != "")
+                {
+                    WriteSubscribeAsyncMethod(w, info, index, fins, true);
+                }
+                else
+                {
+                    WriteSubscribeAsyncMethod(w, info, index, fins, false);
+                }
+                if (info.AlsoNoTags)
+                {
+                    WriteSubscribeAsyncMethod(w, info, index, fins, false);
+                }
                 index++;
             }
         }
@@ -232,33 +278,19 @@ internal class EmitClass
                 w.Write("model")
                 .Write(index)
                 .Write(" = this;");
-            })
-            .WriteLine(w =>
-            {
-                w.Write(info.VariableName)
-                .Write("!.Subscribe");
-                PrintGenerics(w, fins);
-                w.Write("(this, model")
-                .Write(index)
-                .Write(".Handle, ");
-                if (info.Category == EnumCategory.Main)
-                {
-                    w.AppendDoubleQuote();
-                }
-                else if (info.Category == EnumCategory.Parent)
-                {
-                    w.Write(" name");
-                }
-                else if (info.SubscribeTag != "")
-                {
-                    w.Write(info.SubscribeTag);
-                }
-                else
-                {
-                    w.AppendDoubleQuote(info.TagName);
-                }
-                w.Write(");");
             });
+            if (info.SubscribeTag != "")
+            {
+                WriteSubscribeRegularMethod(w, info, index, fins, true);
+            }
+            else
+            {
+                WriteSubscribeRegularMethod(w, info, index, fins, false);
+            }
+            if (info.AlsoNoTags)
+            {
+                WriteSubscribeRegularMethod(w, info, index, fins, false);
+            }
             index++;
             if (info.Category == EnumCategory.Main)
             {
@@ -280,7 +312,7 @@ internal class EmitClass
                    .Write(index)
                    .Write(".Handle, name);");
                });
-                index++;
+               index++;
             }
         }
     }
@@ -309,7 +341,7 @@ internal class EmitClass
             WriteUnsubscribe(w, info, item);
         }
     }
-    private void WriteUnsubscribe(ICodeBlock w, CustomInformation info, HandleInfo subs)
+    private void WriteUnsubscribe(ICodeBlock w, CustomInformation info, HandleInfo subs, bool doTags)
     {
         w.WriteLine(w =>
         {
@@ -325,7 +357,7 @@ internal class EmitClass
             {
                 w.Write(" name");
             }
-            else if (info.UnsubscribeTag != "")
+            else if (doTags)
             {
                 w.Write(info.UnsubscribeTag);
             }
@@ -335,6 +367,21 @@ internal class EmitClass
             }
             w.Write(");");
         });
+    }
+    private void WriteUnsubscribe(ICodeBlock w, CustomInformation info, HandleInfo subs)
+    {
+        if (info.UnsubscribeTag != "")
+        {
+            WriteUnsubscribe(w, info, subs, true);
+        }
+        else
+        {
+            WriteUnsubscribe(w, info, subs, false);
+        }
+        if (info.AlsoNoTags)
+        {
+            WriteUnsubscribe(w, info, subs, false);
+        }
         if (info.Category == EnumCategory.Main)
         {
             w.WriteLine("string name = GetType().Name;");

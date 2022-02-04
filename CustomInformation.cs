@@ -12,6 +12,7 @@ internal class CustomInformation
     public bool HasPartialUnsubscribe { get; set; }
     public bool HasPartialClass { get; set; }
     public bool NeedsTagVariables { get; set; }
+    public bool AlsoNoTags { get; set; }
     public string GenericInfo { get; set; } = "";
     public INamedTypeSymbol? SymbolUsed { get; set; }
     public bool HasErrors()
