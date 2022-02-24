@@ -111,7 +111,8 @@ internal class EmitClass
                         w.WriteLine("protected override void OpenAggregator()")
                         .WriteCodeBlock(w =>
                         {
-                            w.WriteLine("CloseAggregator();"); //needs to close it just in case somehow did not do what it was supposed to do.
+                            //the bad news is closing out did not help after all.  somehow was still hosed.  this means that something else has to close it manually
+                            //w.WriteLine("CloseAggregator();"); //needs to close it just in case somehow did not do what it was supposed to do.
                             w.WriteLine("base.OpenAggregator();");
                             WriteSubscribe(w, item);
                         });
