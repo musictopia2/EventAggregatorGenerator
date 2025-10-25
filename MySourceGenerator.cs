@@ -1,16 +1,15 @@
-﻿using System.Diagnostics;
-namespace EventAggravatorGeneratorV2.GeneratorLibrary;
+﻿namespace EventAggregatorGenerator;
 [Generator]
 public class MySourceGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-//#if DEBUG
-//        if (Debugger.IsAttached == false)
-//        {
-//            Debugger.Launch();
-//        }
-//#endif
+        //#if DEBUG
+        //        if (Debugger.IsAttached == false)
+        //        {
+        //            Debugger.Launch();
+        //        }
+        //#endif
         context.RegisterPostInitializationOutput(c => c.CreateCustomSource().AddAttributesToSourceOnly());
         IncrementalValuesProvider<ClassDeclarationSyntax> declares = context.SyntaxProvider.CreateSyntaxProvider(
             (s, _) => IsSyntaxTarget(s),
@@ -51,9 +50,9 @@ public class MySourceGenerator : IIncrementalGenerator
     private void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> list, SourceProductionContext context)
     {
         var others = list.Distinct();
-        ParserClass parses = new(compilation);
+        ParserClass parses = new(compilation); //for now, need compilation for the parsing since i did last minute.
         var results = parses.GetResults(others);
-        EmitClass emits = new(context, results, compilation);
+        EmitClass emits = new(context, results);
         emits.Emit();
     }
 }

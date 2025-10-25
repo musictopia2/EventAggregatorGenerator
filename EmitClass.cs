@@ -1,45 +1,34 @@
-﻿using System.Reflection;
-
-namespace EventAggregatorGenerator;
-internal class EmitClass
+﻿namespace EventAggregatorGenerator;
+internal class EmitClass(SourceProductionContext context, IEnumerable<CustomInformation> list)
 {
-    private readonly SourceProductionContext _context;
-    private readonly IEnumerable<CustomInformation> _list;
-    private readonly Compilation _compilation;
-    public EmitClass(SourceProductionContext context, IEnumerable<CustomInformation> list, Compilation compilation)
-    {
-        _context = context;
-        _list = list;
-        _compilation = compilation;
-    }
     public void Emit()
     {
         //bool hadErrors = false;
-        foreach (var item in _list)
+        foreach (var item in list)
         {
             if (item.HasPartialSubscribe == false && item.Category != EnumCategory.Screen)
             {
-                _context.RaiseNoSubscribeException(item.SymbolUsed!.Name, item.NeedsTagVariables);
+                context.RaiseNoSubscribeException(item.SymbolUsed!.Name, item.NeedsTagVariables);
                 //hadErrors = true;
             }
             if (item.HasPartialUnsubscribe == false && item.Category != EnumCategory.Screen)
             {
-                _context.RaiseNoUnsubscribeException(item.SymbolUsed!.Name, item.NeedsTagVariables);
+                context.RaiseNoUnsubscribeException(item.SymbolUsed!.Name, item.NeedsTagVariables);
                 //hadErrors = true;
             }
             if (item.HasPartialClass == false)
             {
-                _context.RaiseNoPartialClassException(item.SymbolUsed!.Name);
+                context.RaiseNoPartialClassException(item.SymbolUsed!.Name);
                 //hadErrors = true;
             }
             if (item.VariableName == "")
             {
-                _context.RaiseNoVariableException(item.SymbolUsed!.Name);
+                context.RaiseNoVariableException(item.SymbolUsed!.Name);
                 //hadErrors = true;
             }
             if (item.Category == EnumCategory.Main && item.TagName != "")
             {
-                _context.NoTagsAllowed();
+                context.NoTagsAllowed();
                 //hadErrors = true;
             }
         }
@@ -48,7 +37,7 @@ internal class EmitClass
         //    return;
         //}
 
-        foreach (var item in _list)
+        foreach (var item in list)
         {
             if (item.HasErrors() == false)
             {
@@ -124,58 +113,58 @@ internal class EmitClass
                         });
                     }
                 });
-                _context.AddSource($"{item.SymbolUsed!.Name}.EventAggravatorMethods.g", builder.ToString());
+                context.AddSource($"{item.SymbolUsed!.Name}.EventAggravatorMethods.g", builder.ToString());
             }
         }
-        AddGlobal();
+        //AddGlobal();
     }
-    private void AddGlobal()
-    {
-        if (_list.Count() == 0)
-        {
-            return;
-        }
-        SourceCodeStringBuilder builder = new();
-        string ns = _compilation.AssemblyName!;
-        builder.WriteLine("#nullable enable")
-        .WriteLine(w =>
-        {
-            w.Write("namespace ")
-            .Write(ns)
-            .Write(".EventAggravatorProcesses;");
-        })
-        .WriteLine("public static class GlobalEventAggravatorClass")
-        .WriteCodeBlock(w =>
-        {
-            w.WriteLine(w =>
-            {
-                w.Write("public static void ClearSubscriptions(")
-                .GlobalWrite()
-                .Write("MessengingHelpers.IEventAggregator aggravator)");
-            })
-            .WriteCodeBlock(w =>
-            {
-                foreach (var item in _list)
-                {
-                    var fins = GetUniqueSymbols(item);
-                    foreach (var ff in fins)
-                    {
-                        if (ff.GenericUsed == "")
-                        {
-                            w.WriteLine(w =>
-                            {
+    //private void AddGlobal()
+    //{
+    //    if (_list.Count() == 0)
+    //    {
+    //        return;
+    //    }
+    //    SourceCodeStringBuilder builder = new();
+    //    string ns = _compilation.AssemblyName!;
+    //    builder.WriteLine("#nullable enable")
+    //    .WriteLine(w =>
+    //    {
+    //        w.Write("namespace ")
+    //        .Write(ns)
+    //        .Write(".EventAggravatorProcesses;");
+    //    })
+    //    .WriteLine("public static class GlobalEventAggravatorClass")
+    //    .WriteCodeBlock(w =>
+    //    {
+    //        w.WriteLine(w =>
+    //        {
+    //            w.Write("public static void ClearSubscriptions(")
+    //            .GlobalWrite()
+    //            .Write("MessengingHelpers.IEventAggregator aggravator)");
+    //        })
+    //        .WriteCodeBlock(w =>
+    //        {
+    //            foreach (var item in _list)
+    //            {
+    //                var fins = GetUniqueSymbols(item);
+    //                foreach (var ff in fins)
+    //                {
+    //                    if (ff.GenericUsed == "")
+    //                    {
+    //                        w.WriteLine(w =>
+    //                        {
 
-                                w.Write("aggravator.Clear");
-                                PrintGenerics(w, ff);
-                                w.Write("();");
-                            });
-                        }
-                    }
-                }
-            });
-        });
-        _context.AddSource("generatedglobal.g", builder.ToString());
-    }
+    //                            w.Write("aggravator.Clear");
+    //                            PrintGenerics(w, ff);
+    //                            w.Write("();");
+    //                        });
+    //                    }
+    //                }
+    //            }
+    //        });
+    //    });
+    //    _context.AddSource("generatedglobal.g", builder.ToString());
+    //}
     private void WriteParent(ICodeBlock w, CustomInformation info)
     {
         if (info.Category == EnumCategory.Parent)
@@ -314,7 +303,7 @@ internal class EmitClass
                    .Write(index)
                    .Write(".Handle, name);");
                });
-               index++;
+                index++;
             }
         }
     }
