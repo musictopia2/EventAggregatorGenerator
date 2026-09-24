@@ -15,16 +15,18 @@ internal class ParserClass
             INamedTypeSymbol symbol = (INamedTypeSymbol)compilationSemanticModel.GetDeclaredSymbol(item)!;
             CustomInformation model = new();
             model.HasPartialClass = item.IsPartial();
-            var toUse = symbol.GetSymbolOfType("IEventAggregator");
-            if (toUse is null)
+            model.VariableName = item.GetVariableNameForType(compilationSemanticModel, "IEventAggregator");
+            bool hasAggregatorMember = symbol.TryGetAttribute(
+                aa.EventAggregatorFromMemberClass.EventAggregatorFromMemberClassAttribute,
+                out var aggregatorAttributes);
+            if (hasAggregatorMember)
             {
-                model.VariableName = "";
+                model.VariableName =
+                    aggregatorAttributes.AttributePropertyValue<string>(
+                        aa.EventAggregatorFromMemberClass.GetMemberNameInfo)!;
             }
-            else
-            {
-                model.VariableName = toUse.Name;
-            }
-            toUse = symbol.GetSpecificMethod("Subscribe");
+
+            var toUse = symbol.GetSpecificMethod("Subscribe");
             model.HasPartialSubscribe = toUse is not null;
             toUse = symbol.GetSpecificMethod("Unsubscribe"); //no caps
             model.HasPartialUnsubscribe = toUse is not null;
