@@ -8,11 +8,11 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <Description>Description</Description>
     <Authors>musictopia</Authors>
-	  <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <PackageProjectUrl>https://github.com/musictopia2/EventAggregatorGenerator</PackageProjectUrl>
     <Version>1.0.13</Version>
-    <RunPostBuildAppCondition Condition="'$(Configuration)' == 'Release'">true</RunPostBuildAppCondition>
     <FeedType>Public</FeedType>
+    <RunPostBuildAppCondition Condition="'$(Configuration)' == 'Release'">true</RunPostBuildAppCondition>
   </PropertyGroup>
   <PropertyGroup>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -21,13 +21,13 @@
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AttributesSourceGeneratorHelper" Version="3.0.9" PrivateAssets="all" />
-    <PackageReference Include="CommonSourceGeneratorsHelpers" Version="2.0.98" PrivateAssets="all" />
-	  <PackageReference Include="SourceGeneratorsAttributesLibrary" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Musictopia2.AttributesSourceGeneratorHelper" Version="1.0.1" PrivateAssets="all" />
+    <PackageReference Include="Musictopia2.CommonSourceGeneratorsHelpers" Version="1.0.1" PrivateAssets="all" />
+    <PackageReference Include="Musictopia2.SourceGeneratorsAttributesLibrary" Version="1.0.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="C:\VS\OneNet\Apps\CommandLines\PostBuildPackageHandler\bin\Release\net9.0\PostBuildPackageHandler.exe $(ProjectName) $(ProjectDir) $(ProjectFileName) $(TargetDir)" Condition="'$(Configuration)' == 'Release' and '$(RunPostBuildAppCondition)' == 'true'" />
+    <Exec Command="C:\VS\Apps\CommandLines\PostBuildPackageHandler\bin\Release\net10.0\PostBuildPackageHandler.exe $(ProjectName) $(ProjectDir) $(ProjectFileName) $(TargetDir)" Condition="'$(Configuration)' == 'Release' and '$(RunPostBuildAppCondition)' == 'true'" />
   </Target>
 </Project>

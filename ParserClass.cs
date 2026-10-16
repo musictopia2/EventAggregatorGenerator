@@ -19,11 +19,19 @@ internal class ParserClass
             bool hasAggregatorMember = symbol.TryGetAttribute(
                 aa.EventAggregatorFromMemberClass.EventAggregatorFromMemberClassAttribute,
                 out var aggregatorAttributes);
+
+
             if (hasAggregatorMember)
             {
-                model.VariableName =
-                    aggregatorAttributes.AttributePropertyValue<string>(
-                        aa.EventAggregatorFromMemberClass.GetMemberNameInfo)!;
+                var attribute = aggregatorAttributes.FirstOrDefault();
+
+                if (attribute is not null &&
+                    attribute.ConstructorArguments.Length > 0 &&
+                    attribute.ConstructorArguments[0].Value is string memberName &&
+                    !string.IsNullOrWhiteSpace(memberName))
+                {
+                    model.VariableName = memberName;
+                }
             }
 
             var toUse = symbol.GetSpecificMethod("Subscribe");
